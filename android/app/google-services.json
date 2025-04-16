@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "146708494413",
+    "project_id": "photoshrink-898a4",
+    "storage_bucket": "photoshrink-898a4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:146708494413:android:33573f9ad81457d87ec404",
+        "android_client_info": {
+          "package_name": "com.example.photo_shrink"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "146708494413-et3vbqd8usjm4odhmqamdoo4fsl5rm4j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBQLDjuOyJK02enH3TO9woJcORtAtqERtM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "146708494413-et3vbqd8usjm4odhmqamdoo4fsl5rm4j.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "146708494413-8ft30tivnvnidv338ipqf8jvochvb0mj.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.photoShrink"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
