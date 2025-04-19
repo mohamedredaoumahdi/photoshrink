@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+//import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:photoshrink/core/constants/app_constants.dart';
 import 'package:photoshrink/core/constants/route_constants.dart';
 import 'package:photoshrink/core/theme/app_theme.dart';
@@ -24,8 +24,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final HomeBloc _homeBloc = getIt<HomeBloc>();
-  BannerAd? _bannerAd;
-  bool _isAdLoaded = false;
+  //BannerAd? _bannerAd;
+  final bool _isAdLoaded = false;
 
   @override
   void initState() {
@@ -35,30 +35,30 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _loadAd() {
-    if (AppConstants.enableAds) {
-      _bannerAd = BannerAd(
-        adUnitId: AppConstants.bannerAdUnitId,
-        size: AdSize.banner,
-        request: const AdRequest(),
-        listener: BannerAdListener(
-          onAdLoaded: (ad) {
-            setState(() {
-              _isAdLoaded = true;
-            });
-          },
-          onAdFailedToLoad: (ad, error) {
-            ad.dispose();
-          },
-        ),
-      );
+    // if (AppConstants.enableAds) {
+    //   _bannerAd = BannerAd(
+    //     adUnitId: AppConstants.bannerAdUnitId,
+    //     size: AdSize.banner,
+    //     request: const AdRequest(),
+    //     listener: BannerAdListener(
+    //       onAdLoaded: (ad) {
+    //         setState(() {
+    //           _isAdLoaded = true;
+    //         });
+    //       },
+    //       onAdFailedToLoad: (ad, error) {
+    //         ad.dispose();
+    //       },
+    //     ),
+    //   );
 
-      _bannerAd?.load();
-    }
+    //   _bannerAd?.load();
+    // }
   }
 
   @override
   void dispose() {
-    _bannerAd?.dispose();
+    //_bannerAd?.dispose();
     super.dispose();
   }
 
@@ -97,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             body: _buildBody(context, state),
             floatingActionButton: _buildFloatingActionButton(context, state),
-            bottomNavigationBar: _buildAdBanner(),
+            //bottomNavigationBar: _buildAdBanner(),
           );
         },
       ),
@@ -194,11 +194,11 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Widget _buildAdBanner() {
-    if (AppConstants.enableAds && _isAdLoaded && _bannerAd != null) {
-      return AdBanner(ad: _bannerAd!);
-    } else {
-      return const SizedBox.shrink();
-    }
-  }
+  // Widget _buildAdBanner() {
+  //   if (AppConstants.enableAds && _isAdLoaded && _bannerAd != null) {
+  //     return AdBanner(ad: _bannerAd!);
+  //   } else {
+  //     return const SizedBox.shrink();
+  //   }
+  // }
 }

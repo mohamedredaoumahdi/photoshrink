@@ -72,7 +72,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
     try {
-      await _authService.signInWithGoogle();
+      //await _authService.signInWithGoogle();
       // The authenticated state will be emitted by the stream listener
     } catch (e) {
       emit(AuthError(_getErrorMessage(e)));

@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:before_after/before_after.dart';
 import 'package:flutter/material.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+//import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:share_plus/share_plus.dart';
@@ -33,8 +33,8 @@ class PreviewScreen extends StatefulWidget {
 class _PreviewScreenState extends State<PreviewScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final AnalyticsService _analyticsService = getIt<AnalyticsService>();
-  BannerAd? _bannerAd;
-  bool _isAdLoaded = false;
+  //BannerAd? _bannerAd;
+  final bool _isAdLoaded = false;
   bool _isZoomed = false;
 
   @override
@@ -51,31 +51,31 @@ class _PreviewScreenState extends State<PreviewScreen> with SingleTickerProvider
   }
 
   void _loadAd() {
-    if (AppConstants.enableAds) {
-      _bannerAd = BannerAd(
-        adUnitId: AppConstants.bannerAdUnitId,
-        size: AdSize.banner,
-        request: const AdRequest(),
-        listener: BannerAdListener(
-          onAdLoaded: (ad) {
-            setState(() {
-              _isAdLoaded = true;
-            });
-          },
-          onAdFailedToLoad: (ad, error) {
-            ad.dispose();
-          },
-        ),
-      );
+    // if (AppConstants.enableAds) {
+    //   _bannerAd = BannerAd(
+    //     adUnitId: AppConstants.bannerAdUnitId,
+    //     size: AdSize.banner,
+    //     request: const AdRequest(),
+    //     listener: BannerAdListener(
+    //       onAdLoaded: (ad) {
+    //         setState(() {
+    //           _isAdLoaded = true;
+    //         });
+    //       },
+    //       onAdFailedToLoad: (ad, error) {
+    //         ad.dispose();
+    //       },
+    //     ),
+    //   );
 
-      _bannerAd?.load();
-    }
+    //   _bannerAd?.load();
+    // }
   }
 
   @override
   void dispose() {
     _tabController.dispose();
-    _bannerAd?.dispose();
+    //_bannerAd?.dispose();
     super.dispose();
   }
 
@@ -248,7 +248,7 @@ class _PreviewScreenState extends State<PreviewScreen> with SingleTickerProvider
           ),
           
           // Ad banner
-          _buildAdBanner(),
+          //_buildAdBanner(),
         ],
       ),
     );
@@ -327,11 +327,11 @@ class _PreviewScreenState extends State<PreviewScreen> with SingleTickerProvider
     );
   }
 
-  Widget _buildAdBanner() {
-    if (AppConstants.enableAds && _isAdLoaded && _bannerAd != null) {
-      return AdBanner(ad: _bannerAd!);
-    } else {
-      return const SizedBox.shrink();
-    }
-  }
+  // Widget _buildAdBanner() {
+  //   if (AppConstants.enableAds && _isAdLoaded && _bannerAd != null) {
+  //     return AdBanner(ad: _bannerAd!);
+  //   } else {
+  //     return const SizedBox.shrink();
+  //   }
+  // }
 }

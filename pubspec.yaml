@@ -34,7 +34,6 @@ dependencies:
   path_provider: ^2.1.0
   
   # Monetization
-  #google_mobile_ads: ^3.1.0
   in_app_purchase: ^3.1.8
   
   # UI
@@ -48,12 +47,12 @@ dependencies:
   intl: ^0.18.1
   connectivity_plus: ^4.0.2
   permission_handler: ^10.4.3
-  
+
   # Development
   freezed_annotation: ^2.4.1
   json_annotation: ^4.8.1
-  #google_sign_in: ^5.4.0
   share_plus: ^10.1.4
+  #google_sign_in: ^6.2.1
 
 dev_dependencies:
   flutter_test:

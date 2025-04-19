@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:photoshrink/core/constants/app_constants.dart';
 import 'package:photoshrink/core/theme/app_theme.dart';
 
 class CompressionQualitySelector extends StatelessWidget {

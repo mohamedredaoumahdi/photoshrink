@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+//import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:photoshrink/core/constants/app_constants.dart';
 import 'package:photoshrink/core/constants/route_constants.dart';
 import 'package:photoshrink/core/utils/image_utils.dart';
@@ -29,8 +29,8 @@ class CompressionScreen extends StatefulWidget {
 
 class _CompressionScreenState extends State<CompressionScreen> {
   final CompressionBloc _compressionBloc = getIt<CompressionBloc>();
-  BannerAd? _bannerAd;
-  bool _isAdLoaded = false;
+  //BannerAd? _bannerAd;
+  final bool _isAdLoaded = false;
 
   @override
   void initState() {
@@ -45,30 +45,30 @@ class _CompressionScreenState extends State<CompressionScreen> {
   }
 
   void _loadAd() {
-    if (AppConstants.enableAds) {
-      _bannerAd = BannerAd(
-        adUnitId: AppConstants.bannerAdUnitId,
-        size: AdSize.banner,
-        request: const AdRequest(),
-        listener: BannerAdListener(
-          onAdLoaded: (ad) {
-            setState(() {
-              _isAdLoaded = true;
-            });
-          },
-          onAdFailedToLoad: (ad, error) {
-            ad.dispose();
-          },
-        ),
-      );
+    // if (AppConstants.enableAds) {
+    //   _bannerAd = BannerAd(
+    //     adUnitId: AppConstants.bannerAdUnitId,
+    //     size: AdSize.banner,
+    //     request: const AdRequest(),
+    //     listener: BannerAdListener(
+    //       onAdLoaded: (ad) {
+    //         setState(() {
+    //           _isAdLoaded = true;
+    //         });
+    //       },
+    //       onAdFailedToLoad: (ad, error) {
+    //         ad.dispose();
+    //       },
+    //     ),
+    //   );
 
-      _bannerAd?.load();
-    }
+    //   _bannerAd?.load();
+    // }
   }
 
   @override
   void dispose() {
-    _bannerAd?.dispose();
+    //_bannerAd?.dispose();
     super.dispose();
   }
 
@@ -110,7 +110,7 @@ class _CompressionScreenState extends State<CompressionScreen> {
                   : const BackButton(),
             ),
             body: _buildBody(context, state),
-            bottomNavigationBar: _buildAdBanner(),
+            //bottomNavigationBar: _buildAdBanner(),
           );
         },
       ),
@@ -251,11 +251,11 @@ class _CompressionScreenState extends State<CompressionScreen> {
     );
   }
 
-  Widget _buildAdBanner() {
-    if (AppConstants.enableAds && _isAdLoaded && _bannerAd != null) {
-      return AdBanner(ad: _bannerAd!);
-    } else {
-      return const SizedBox.shrink();
-    }
-  }
+  // Widget _buildAdBanner() {
+  //   if (AppConstants.enableAds && _isAdLoaded && _bannerAd != null) {
+  //     return AdBanner(ad: _bannerAd!);
+  //   } else {
+  //     return const SizedBox.shrink();
+  //   }
+  // }
 }
