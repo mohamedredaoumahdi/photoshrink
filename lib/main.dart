@@ -9,12 +9,15 @@ import 'package:photoshrink/core/theme/app_theme.dart';
 import 'package:photoshrink/di/dependency_injection.dart';
 import 'package:photoshrink/presentation/bloc/app_bloc_observer.dart';
 import 'package:photoshrink/presentation/routes/app_router.dart';
+import 'package:photoshrink/firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize Firebase
-  await Firebase.initializeApp();
+  // Initialize Firebase with options
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   
   // Set preferred orientations
   await SystemChrome.setPreferredOrientations([

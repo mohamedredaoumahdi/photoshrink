@@ -43,12 +43,18 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     if (onboardingCompleted) {
       // Check auth status
       if (AppConstants.enableUserAuthentication) {
-        context.read<AuthBloc>().add(AuthCheckRequested());
+        if (mounted) {
+          context.read<AuthBloc>().add(AuthCheckRequested());
+        }
       } else {
-        Navigator.of(context).pushReplacementNamed(RouteConstants.home);
+        if (mounted) {
+          Navigator.of(context).pushReplacementNamed(RouteConstants.home);
+        }
       }
     } else {
-      Navigator.of(context).pushReplacementNamed(RouteConstants.onboarding);
+      if (mounted) {
+        Navigator.of(context).pushReplacementNamed(RouteConstants.onboarding);
+      }
     }
   }
 
@@ -60,36 +66,47 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
-      listener: (context, state) {
-        if (state is Authenticated) {
-          Navigator.of(context).pushReplacementNamed(RouteConstants.home);
-        } else if (state is Unauthenticated && AppConstants.enableUserAuthentication) {
-          Navigator.of(context).pushReplacementNamed(RouteConstants.auth);
-        }
-      },
-      child: Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // App logo animation
-              Lottie.asset(
-                'assets/animations/compress_animation.json',
-                controller: _animationController,
-                width: 200,
-                height: 200,
+    return BlocProvider(
+      create: (_) => getIt<AuthBloc>(),
+      child: BlocConsumer<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is Authenticated) {
+            Navigator.of(context).pushReplacementNamed(RouteConstants.home);
+          } else if (state is Unauthenticated && AppConstants.enableUserAuthentication) {
+            Navigator.of(context).pushReplacementNamed(RouteConstants.auth);
+          }
+        },
+        builder: (context, state) {
+          return Scaffold(
+            body: SafeArea(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min, // This prevents overflow
+                  children: [
+                    // App logo animation
+                    SizedBox(
+                      width: 200,
+                      height: 200,
+                      child: Lottie.asset(
+                        'assets/animations/compress_animation.json',
+                        controller: _animationController,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      AppConstants.appName,
+                      style: Theme.of(context).textTheme.headlineLarge,
+                    ),
+                    const SizedBox(height: 10),
+                    const Text('Compress your images in seconds'),
+                  ],
+                ),
               ),
-              const SizedBox(height: 20),
-              Text(
-                AppConstants.appName,
-                style: Theme.of(context).textTheme.headlineLarge,
-              ),
-              const SizedBox(height: 10),
-              const Text('Compress your images in seconds'),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photoshrink/presentation/screens/auth/auth_screen.dart'; // Add this import
 import 'package:photoshrink/presentation/screens/compression/compression_screen.dart';
 import 'package:photoshrink/core/constants/route_constants.dart';
 import 'package:photoshrink/presentation/screens/home/home_screen.dart';
@@ -15,6 +16,8 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const SplashScreen());
       case RouteConstants.onboarding:
         return MaterialPageRoute(builder: (_) => const OnboardingScreen());
+      case RouteConstants.auth:
+        return MaterialPageRoute(builder: (_) => const AuthScreen());  // Add this case
       case RouteConstants.home:
         return MaterialPageRoute(builder: (_) => const HomeScreen());
       case RouteConstants.compression:

@@ -1,15 +1,12 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 //import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:photoshrink/core/constants/app_constants.dart';
 import 'package:photoshrink/core/constants/route_constants.dart';
 import 'package:photoshrink/core/utils/image_utils.dart';
 import 'package:photoshrink/di/dependency_injection.dart';
 import 'package:photoshrink/presentation/bloc/compression/compression_bloc.dart';
 import 'package:photoshrink/presentation/bloc/compression/compression_event.dart';
 import 'package:photoshrink/presentation/bloc/compression/compression_state.dart';
-import 'package:photoshrink/presentation/common_widgets/ad_banner.dart';
 import 'package:photoshrink/presentation/screens/compression/widgets/compression_progress.dart';
 import 'package:photoshrink/presentation/screens/compression/widgets/compression_result_card.dart';
 
@@ -217,7 +214,7 @@ class _CompressionScreenState extends State<CompressionScreen> {
           padding: const EdgeInsets.all(16.0),
           child: ElevatedButton(
             onPressed: () {
-              Navigator.of(context).pop();
+              Navigator.of(context).pop(true);
             },
             style: ElevatedButton.styleFrom(
               minimumSize: const Size.fromHeight(50),

@@ -56,19 +56,20 @@ class CompressionResultCard extends StatelessWidget {
                       _getFileName(result.originalPath),
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: 14, // Reduce font size
+                        overflow: TextOverflow.ellipsis, // Add overflow property
                       ),
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
-                    Row(
+                    Wrap( // Use Wrap instead of Row
+                      spacing: 8, // horizontal spacing
+                      runSpacing: 4, // vertical spacing
                       children: [
                         _buildInfoChip(
                           'Original',
                           ImageUtils.formatFileSize(result.originalSize),
                         ),
-                        const SizedBox(width: 8),
                         _buildInfoChip(
                           'Compressed',
                           ImageUtils.formatFileSize(result.compressedSize),
@@ -81,7 +82,10 @@ class CompressionResultCard extends StatelessWidget {
                       style: TextStyle(
                         color: Colors.green.shade700,
                         fontWeight: FontWeight.w500,
+                        fontSize: 12, // Reduce font size
                       ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                   ],
                 ),
@@ -97,7 +101,7 @@ class CompressionResultCard extends StatelessWidget {
 
   Widget _buildInfoChip(String label, String value) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3), // Reduce padding
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
         borderRadius: BorderRadius.circular(12),
@@ -108,15 +112,15 @@ class CompressionResultCard extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 10, // Reduce font size
               color: Colors.grey.shade700,
             ),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 3), // Reduce spacing
           Text(
             value,
             style: const TextStyle(
-              fontSize: 12,
+              fontSize: 10, // Reduce font size
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -126,6 +130,10 @@ class CompressionResultCard extends StatelessWidget {
   }
 
   String _getFileName(String path) {
-    return path.split('/').last;
+    final filename = path.split('/').last;
+    // Truncate filename if it's too long
+    return filename.length > 20 
+        ? '${filename.substring(0, 18)}...' 
+        : filename;
   }
 }

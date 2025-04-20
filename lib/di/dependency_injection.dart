@@ -1,4 +1,8 @@
 import 'package:get_it/get_it.dart';
+import 'package:photoshrink/presentation/bloc/auth/auth_bloc.dart';
+import 'package:photoshrink/presentation/bloc/compression/compression_bloc.dart';
+import 'package:photoshrink/presentation/bloc/home/home_bloc.dart';
+import 'package:photoshrink/presentation/bloc/settings/settings_bloc.dart';
 import 'package:photoshrink/services/analytics/analytics_service.dart';
 import 'package:photoshrink/services/auth/auth_service.dart';
 import 'package:photoshrink/services/compression/compression_service.dart';
@@ -23,4 +27,23 @@ Future<void> initDependencies() async {
   // Repositories will be registered here
   
   // BLoCs will be registered here
+  getIt.registerFactory<AuthBloc>(() => AuthBloc(
+    authService: getIt<AuthService>(),
+  ));
+  
+  getIt.registerFactory<CompressionBloc>(() => CompressionBloc(
+    compressionService: getIt<CompressionService>(),
+    storageService: getIt<StorageService>(),
+    analyticsService: getIt<AnalyticsService>(),
+  ));
+  
+  getIt.registerFactory<HomeBloc>(() => HomeBloc(
+    storageService: getIt<StorageService>(),
+    purchaseService: getIt<PurchaseService>(),
+  ));
+  
+  getIt.registerFactory<SettingsBloc>(() => SettingsBloc(
+    storageService: getIt<StorageService>(),
+    purchaseService: getIt<PurchaseService>(),
+  ));
 }

@@ -1,15 +1,12 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 //import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:photoshrink/core/constants/app_constants.dart';
 import 'package:photoshrink/core/constants/route_constants.dart';
-import 'package:photoshrink/core/theme/app_theme.dart';
 import 'package:photoshrink/di/dependency_injection.dart';
 import 'package:photoshrink/presentation/bloc/home/home_bloc.dart';
 import 'package:photoshrink/presentation/bloc/home/home_event.dart';
 import 'package:photoshrink/presentation/bloc/home/home_state.dart';
-import 'package:photoshrink/presentation/common_widgets/ad_banner.dart';
 import 'package:photoshrink/presentation/common_widgets/empty_state.dart';
 import 'package:photoshrink/presentation/common_widgets/loading_indicator.dart';
 import 'package:photoshrink/presentation/screens/home/widgets/compression_quality_selector.dart';
@@ -30,7 +27,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    Future.delayed(Duration.zero, () {
     _homeBloc.add(LoadSettingsEvent());
+    });
     _loadAd();
   }
 
@@ -68,20 +67,25 @@ class _HomeScreenState extends State<HomeScreen> {
       value: _homeBloc,
       child: BlocConsumer<HomeBloc, HomeState>(
         listener: (context, state) {
-          if (state is HomeError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
-          } else if (state is NavigateToCompressionScreen) {
-            Navigator.of(context).pushNamed(
-              RouteConstants.compression,
-              arguments: {
-                'imagePaths': state.imagePaths,
-                'quality': state.quality,
-              },
-            );
-          }
-        },
+  if (state is HomeError) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(state.message)),
+    );
+  } else if (state is NavigateToCompressionScreen) {
+    Navigator.of(context).pushNamed(
+      RouteConstants.compression,
+      arguments: {
+        'imagePaths': state.imagePaths,
+        'quality': state.quality,
+      },
+    ).then((value) {
+      // Refresh state when returning from compression screen
+      if (value == true) {
+        _homeBloc.add(LoadSettingsEvent());
+      }
+    });
+  }
+},
         builder: (context, state) {
           return Scaffold(
             appBar: AppBar(

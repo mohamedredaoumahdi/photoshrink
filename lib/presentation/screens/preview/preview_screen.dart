@@ -204,7 +204,7 @@ class _PreviewScreenState extends State<PreviewScreen> with SingleTickerProvider
                           ),
                           thumbColor: AppTheme.primaryColor,
                           thumbWidth: 30.0,
-                          overlayColor: Colors.black12 as WidgetStateProperty<Color?>?,
+                          overlayColor: WidgetStateProperty.all<Color?>(Colors.black12),
                         ),
                 ),
                 
