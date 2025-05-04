@@ -13,25 +13,35 @@ class LoadingIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Lottie.asset(
-            'assets/animations/loading_animation.json',
-            width: 150,
-            height: 150,
-          ),
-          if (message != null) ...[
-            const SizedBox(height: 16),
-            Text(
-              message!,
-              style: const TextStyle(
-                fontSize: 16,
-                color: AppTheme.primaryColor,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 150,
+              height: 150,
+              child: Lottie.asset(
+                'assets/animations/loading_animation.json',
+                fit: BoxFit.contain,
               ),
             ),
+            if (message != null) ...[
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Text(
+                  message!,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: AppTheme.primaryColor,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
