@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
 import 'package:photoshrink/core/theme/app_theme.dart';
 
 class CompressionProgress extends StatelessWidget {
@@ -24,13 +23,9 @@ class CompressionProgress extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(
-                height: 200,
-                width: 200,
-                child: Lottie.asset(
-                  'assets/animations/compressing_animation.json',
-                  fit: BoxFit.contain,
-                ),
+              const CircularProgressIndicator(
+                color: AppTheme.primaryColor,
+                strokeWidth: 6,
               ),
               const SizedBox(height: 24),
               Text(
