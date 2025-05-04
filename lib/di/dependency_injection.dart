@@ -1,4 +1,5 @@
 import 'package:get_it/get_it.dart';
+import 'package:photoshrink/core/utils/logger_util.dart';
 import 'package:photoshrink/presentation/bloc/auth/auth_bloc.dart';
 import 'package:photoshrink/presentation/bloc/compression/compression_bloc.dart';
 import 'package:photoshrink/presentation/bloc/home/home_bloc.dart';
@@ -11,39 +12,84 @@ import 'package:photoshrink/services/storage/storage_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final GetIt getIt = GetIt.instance;
+const String TAG = 'DependencyInjection';
 
 Future<void> initDependencies() async {
+  LoggerUtil.i(TAG, 'Initializing dependencies');
+  
+  // Configure logger in debug mode
+  if (true) { // Replace with appropriate condition for debug mode
+    LoggerUtil.setLogLevel(LoggerUtil.VERBOSE);
+    LoggerUtil.i(TAG, 'Logger set to VERBOSE level for debugging');
+  }
+
   // External services
+  LoggerUtil.d(TAG, 'Initializing shared preferences');
   final sharedPreferences = await SharedPreferences.getInstance();
   getIt.registerLazySingleton(() => sharedPreferences);
   
   // App services
-  getIt.registerLazySingleton<AnalyticsService>(() => AnalyticsServiceImpl());
-  getIt.registerLazySingleton<AuthService>(() => AuthServiceImpl());
-  getIt.registerLazySingleton<CompressionService>(() => CompressionServiceImpl());
-  getIt.registerLazySingleton<StorageService>(() => StorageServiceImpl(sharedPreferences));
-  getIt.registerLazySingleton<PurchaseService>(() => PurchaseServiceImpl());
+  LoggerUtil.d(TAG, 'Registering app services');
   
-  // Repositories will be registered here
+  getIt.registerLazySingleton<AnalyticsService>(() {
+    LoggerUtil.d(TAG, 'Creating AnalyticsService');
+    return AnalyticsServiceImpl();
+  });
+  
+  getIt.registerLazySingleton<AuthService>(() {
+    LoggerUtil.d(TAG, 'Creating AuthService');
+    return AuthServiceImpl();
+  });
+  
+  getIt.registerLazySingleton<CompressionService>(() {
+    LoggerUtil.d(TAG, 'Creating CompressionService');
+    return CompressionServiceImpl();
+  });
+  
+  getIt.registerLazySingleton<StorageService>(() {
+    LoggerUtil.d(TAG, 'Creating StorageService');
+    return StorageServiceImpl(sharedPreferences);
+  });
+  
+  getIt.registerLazySingleton<PurchaseService>(() {
+    LoggerUtil.d(TAG, 'Creating PurchaseService');
+    return PurchaseServiceImpl();
+  });
   
   // BLoCs will be registered here
-  getIt.registerFactory<AuthBloc>(() => AuthBloc(
-    authService: getIt<AuthService>(),
-  ));
+  LoggerUtil.d(TAG, 'Registering BLoCs');
   
-  getIt.registerFactory<CompressionBloc>(() => CompressionBloc(
-    compressionService: getIt<CompressionService>(),
-    storageService: getIt<StorageService>(),
-    analyticsService: getIt<AnalyticsService>(),
-  ));
+  getIt.registerFactory<AuthBloc>(() {
+    LoggerUtil.d(TAG, 'Creating AuthBloc');
+    return AuthBloc(
+      authService: getIt<AuthService>(),
+    );
+  });
   
-  getIt.registerFactory<HomeBloc>(() => HomeBloc(
-    storageService: getIt<StorageService>(),
-    purchaseService: getIt<PurchaseService>(),
-  ));
+  getIt.registerFactory<CompressionBloc>(() {
+    LoggerUtil.d(TAG, 'Creating CompressionBloc');
+    return CompressionBloc(
+      compressionService: getIt<CompressionService>(),
+      storageService: getIt<StorageService>(),
+      analyticsService: getIt<AnalyticsService>(),
+    );
+  });
   
-  getIt.registerFactory<SettingsBloc>(() => SettingsBloc(
-    storageService: getIt<StorageService>(),
-    purchaseService: getIt<PurchaseService>(),
-  ));
+  getIt.registerFactory<HomeBloc>(() {
+    LoggerUtil.d(TAG, 'Creating HomeBloc');
+    return HomeBloc(
+      storageService: getIt<StorageService>(),
+      purchaseService: getIt<PurchaseService>(),
+    );
+  });
+  
+  getIt.registerFactory<SettingsBloc>(() {
+    LoggerUtil.d(TAG, 'Creating SettingsBloc');
+    return SettingsBloc(
+      storageService: getIt<StorageService>(),
+      purchaseService: getIt<PurchaseService>(),
+    );
+  });
+  
+  LoggerUtil.i(TAG, 'Dependencies initialized successfully');
 }

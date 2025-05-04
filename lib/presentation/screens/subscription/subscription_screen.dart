@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:photoshrink/core/theme/app_theme.dart';
+import 'package:photoshrink/core/utils/logger_util.dart';
 import 'package:photoshrink/data/models/subscription_plan.dart';
 import 'package:photoshrink/di/dependency_injection.dart';
 import 'package:photoshrink/presentation/screens/subscription/widgets/subscription_card.dart';
@@ -13,46 +14,78 @@ class SubscriptionScreen extends StatefulWidget {
 }
 
 class _SubscriptionScreenState extends State<SubscriptionScreen> {
+  static const String TAG = 'SubscriptionScreen';
   final PurchaseService _purchaseService = getIt<PurchaseService>();
   List<SubscriptionPlan> _subscriptionPlans = [];
   bool _isLoading = true;
   String? _errorMessage;
+  bool _mounted = true; // Track if widget is still mounted
 
   @override
   void initState() {
     super.initState();
+    LoggerUtil.d(TAG, 'Initializing subscription screen');
     _loadSubscriptionPlans();
   }
 
+  @override
+  void dispose() {
+    LoggerUtil.d(TAG, 'Disposing subscription screen');
+    _mounted = false; // Set flag when disposed
+    super.dispose();
+  }
+
   Future<void> _loadSubscriptionPlans() async {
+    LoggerUtil.d(TAG, 'Loading subscription plans');
     try {
       final subscriptionPlans = await _purchaseService.getAvailableSubscriptions();
-      setState(() {
-        _subscriptionPlans = subscriptionPlans;
-        _isLoading = false;
-      });
+      
+      // Check if widget is still mounted before updating state
+      if (_mounted) {
+        setState(() {
+          _subscriptionPlans = subscriptionPlans;
+          _isLoading = false;
+        });
+        LoggerUtil.i(TAG, 'Loaded ${subscriptionPlans.length} subscription plans');
+      }
     } catch (e) {
-      setState(() {
-        _errorMessage = 'Failed to load subscription plans. Please try again.';
-        _isLoading = false;
-      });
+      LoggerUtil.e(TAG, 'Failed to load subscription plans: $e');
+      
+      // Check if widget is still mounted before updating state
+      if (_mounted) {
+        setState(() {
+          _errorMessage = 'Failed to load subscription plans. Please try again.';
+          _isLoading = false;
+        });
+      }
     }
   }
 
   Future<void> _subscribeToPlan(SubscriptionPlan plan) async {
+    LoggerUtil.i(TAG, 'Subscribing to plan: ${plan.id}');
     try {
-      setState(() {
-        _isLoading = true;
-      });
+      // Check if widget is still mounted before updating state
+      if (_mounted) {
+        setState(() {
+          _isLoading = true;
+        });
+      } else {
+        return; // Exit if not mounted
+      }
       
       final success = await _purchaseService.purchaseSubscription(plan.id);
       
+      // Check if widget is still mounted before updating state
+      if (!_mounted) return;
+      
       if (success) {
+        LoggerUtil.i(TAG, 'Subscription successful for plan: ${plan.id}');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Subscription successfully activated!')),
         );
         Navigator.of(context).pop();
       } else {
+        LoggerUtil.w(TAG, 'Purchase failed for plan: ${plan.id}');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to complete the purchase. Please try again.')),
         );
@@ -61,6 +94,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         });
       }
     } catch (e) {
+      LoggerUtil.e(TAG, 'Error subscribing to plan: $e');
+      
+      // Check if widget is still mounted before updating state
+      if (!_mounted) return;
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${e.toString()}')),
       );
@@ -71,12 +109,21 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   }
 
   Future<void> _restorePurchases() async {
+    LoggerUtil.i(TAG, 'Restoring purchases');
     try {
-      setState(() {
-        _isLoading = true;
-      });
+      // Check if widget is still mounted before updating state
+      if (_mounted) {
+        setState(() {
+          _isLoading = true;
+        });
+      } else {
+        return; // Exit if not mounted
+      }
       
       final success = await _purchaseService.restorePurchases();
+      
+      // Check if widget is still mounted before updating state
+      if (!_mounted) return;
       
       setState(() {
         _isLoading = false;
@@ -86,22 +133,33 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         // Check if premium after restore
         final isPremium = await _purchaseService.isPremiumUser();
         
+        // Check if widget is still mounted
+        if (!_mounted) return;
+        
         if (isPremium) {
+          LoggerUtil.i(TAG, 'Premium subscription successfully restored');
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Premium subscription successfully restored!')),
           );
           Navigator.of(context).pop();
         } else {
+          LoggerUtil.i(TAG, 'No previous subscriptions found');
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('No previous subscriptions found.')),
           );
         }
       } else {
+        LoggerUtil.w(TAG, 'Failed to restore purchases');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to restore purchases. Please try again.')),
         );
       }
     } catch (e) {
+      LoggerUtil.e(TAG, 'Error restoring purchases: $e');
+      
+      // Check if widget is still mounted before updating state
+      if (!_mounted) return;
+      
       setState(() {
         _isLoading = false;
       });

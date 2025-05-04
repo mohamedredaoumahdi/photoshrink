@@ -45,10 +45,18 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	
+	<!-- Photo Library Permissions - Already Present -->
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app needs access to your photo library to select and archive images.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>This app needs access to save extracted images to your photo library.</string>
+	
+	<!-- Storage Directory Access - Additional Permissions -->
+	<key>NSDocumentsDirectoryUsageDescription</key>
+	<string>PhotoShrink needs access to the documents directory to save your compressed images in your preferred location.</string>
+	<key>NSDownloadsDirectoryUsageDescription</key>
+	<string>PhotoShrink needs access to the downloads directory to save your compressed images if you choose this location.</string>
 	
 	<!-- Document Types -->
 	<key>CFBundleDocumentTypes</key>

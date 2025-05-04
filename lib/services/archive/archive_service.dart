@@ -4,12 +4,17 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:photoshrink/core/utils/logger_util.dart';
 
 class ArchiveService {
+  static const String TAG = 'ArchiveService';
+
   // Create a lossless archive from multiple images
   Future<File?> createImageArchive(List<String> imagePaths, {
     void Function(double progress, int processedImages, int totalImages)? onProgress,
   }) async {
+    LoggerUtil.service(TAG, 'Creating archive from ${imagePaths.length} images');
+    
     try {
       // Create archive
       final archive = Archive();
@@ -24,6 +29,7 @@ class ArchiveService {
         
         // Get original filename
         final fileName = path.basename(imagePaths[i]);
+        LoggerUtil.d(TAG, 'Adding file to archive: ${LoggerUtil.truncatePath(fileName)}');
         
         // Add file to archive in original quality
         final archiveFile = ArchiveFile(
@@ -45,16 +51,26 @@ class ArchiveService {
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final outputPath = path.join(outputDir.path, 'photoshrink_$timestamp.phsrk');
       
+      LoggerUtil.d(TAG, 'Encoding archive with compression level 9');
       // Encode and save the zip file with good compression level
       final zipData = ZipEncoder().encode(archive, level: 9); // Maximum compression level
-      if (zipData == null) return null;
+      if (zipData == null) {
+        LoggerUtil.e(TAG, 'Failed to encode zip data');
+        return null;
+      }
       
       final zipFile = File(outputPath);
       await zipFile.writeAsBytes(zipData);
       
+      final archiveSize = await zipFile.length();
+      final compressionRatio = (totalOriginalSize - archiveSize) / totalOriginalSize * 100;
+      
+      LoggerUtil.i(TAG, 'Archive created successfully at ${LoggerUtil.truncatePath(outputPath)}');
+      LoggerUtil.i(TAG, 'Original size: ${_formatSize(totalOriginalSize)}, Archive size: ${_formatSize(archiveSize)}, Reduction: ${compressionRatio.toStringAsFixed(2)}%');
+      
       return zipFile;
     } catch (e) {
-      print('Error creating archive: $e');
+      LoggerUtil.e(TAG, 'Error creating archive: $e');
       return null;
     }
   }
@@ -64,11 +80,14 @@ class ArchiveService {
     void Function(double progress, int processedImages, int totalImages)? onProgress,
     bool saveToGallery = false,
   }) async {
+    LoggerUtil.service(TAG, 'Extracting archive: ${LoggerUtil.truncatePath(archivePath)}');
+    
     try {
       final File archiveFile = File(archivePath);
       final bytes = await archiveFile.readAsBytes();
       
       // Decode the zip
+      LoggerUtil.d(TAG, 'Decoding zip file');
       final archive = ZipDecoder().decodeBytes(bytes);
       final extractedPaths = <String>[];
       int processedCount = 0;
@@ -81,6 +100,8 @@ class ArchiveService {
         }
       }
       
+      LoggerUtil.i(TAG, 'Found $imageFiles image files in archive');
+      
       // Get output directory
       final outputDir = await getTemporaryDirectory();
       
@@ -92,9 +113,12 @@ class ArchiveService {
           await outputFile.writeAsBytes(file.content as List<int>);
           extractedPaths.add(outputPath);
           
+          LoggerUtil.d(TAG, 'Extracted: ${LoggerUtil.truncatePath(file.name)}');
+          
           // Save to gallery if requested
           if (saveToGallery) {
-            await ImageGallerySaver.saveFile(outputPath);
+            final result = await ImageGallerySaver.saveFile(outputPath);
+            LoggerUtil.d(TAG, 'Saved to gallery: ${result != null}');
           }
           
           // Report progress
@@ -105,9 +129,10 @@ class ArchiveService {
         }
       }
       
+      LoggerUtil.i(TAG, 'Extraction complete. Extracted ${extractedPaths.length} images');
       return extractedPaths;
     } catch (e) {
-      print('Error extracting archive: $e');
+      LoggerUtil.e(TAG, 'Error extracting archive: $e');
       return [];
     }
   }
@@ -120,14 +145,17 @@ class ArchiveService {
   
   // Share archive file
   Future<bool> shareArchive(File archiveFile, {String? message}) async {
+    LoggerUtil.service(TAG, 'Sharing archive: ${LoggerUtil.truncatePath(archiveFile.path)}');
+    
     try {
       await Share.shareXFiles(
         [XFile(archiveFile.path)],
         text: message ?? 'High-quality images shared from PhotoShrink',
       );
+      LoggerUtil.i(TAG, 'Archive shared successfully');
       return true;
     } catch (e) {
-      print('Error sharing archive: $e');
+      LoggerUtil.e(TAG, 'Error sharing archive: $e');
       return false;
     }
   }
@@ -145,9 +173,23 @@ class ArchiveService {
       }
       
       // Calculate ratio (positive means reduction)
-      return (totalOriginalSize - archiveSize) / totalOriginalSize * 100;
+      final ratio = (totalOriginalSize - archiveSize) / totalOriginalSize * 100;
+      LoggerUtil.d(TAG, 'Compression ratio: ${ratio.toStringAsFixed(2)}%');
+      return ratio;
     } catch (e) {
+      LoggerUtil.e(TAG, 'Error calculating compression ratio: $e');
       return 0.0;
+    }
+  }
+  
+  // Format file size for logging
+  String _formatSize(int bytes) {
+    if (bytes < 1024) {
+      return '$bytes B';
+    } else if (bytes < 1024 * 1024) {
+      return '${(bytes / 1024).toStringAsFixed(2)} KB';
+    } else {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(2)} MB';
     }
   }
 }

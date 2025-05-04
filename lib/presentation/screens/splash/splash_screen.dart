@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
 import 'package:photoshrink/core/constants/app_constants.dart';
 import 'package:photoshrink/core/constants/route_constants.dart';
+import 'package:photoshrink/core/theme/app_theme.dart';
 import 'package:photoshrink/di/dependency_injection.dart';
 import 'package:photoshrink/presentation/bloc/auth/auth_bloc.dart';
 import 'package:photoshrink/presentation/bloc/auth/auth_event.dart';
@@ -18,22 +19,44 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
+  late Animation<double> _fadeInAnimation;
+  late Animation<Offset> _slideAnimation;
   final StorageService _storageService = getIt<StorageService>();
 
   @override
   void initState() {
     super.initState();
+    
+    // Initialize animation controller
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
+      duration: const Duration(seconds: 3),
+    );
+    
+    // Create fade-in animation
+    _fadeInAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
+      ),
+    );
+    
+    // Create slide animation for the text
+    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.3, 0.7, curve: Curves.easeOut),
+      ),
     );
 
+    // Add listener to handle navigation after animation completes
     _animationController.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
         _navigateNext();
       }
     });
 
+    // Start animation
     _animationController.forward();
   }
 
@@ -78,29 +101,86 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         },
         builder: (context, state) {
           return Scaffold(
+            backgroundColor: Colors.white,
             body: SafeArea(
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min, // This prevents overflow
                   children: [
-                    // App logo animation
-                    SizedBox(
-                      width: 200,
-                      height: 200,
-                      child: Lottie.asset(
-                        'assets/animations/compress_animation.json',
-                        controller: _animationController,
-                        fit: BoxFit.contain,
+                    // App logo/animation with fade-in effect
+                    FadeTransition(
+                      opacity: _fadeInAnimation,
+                      child: Container(
+                        width: 180,
+                        height: 180,
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Lottie.asset(
+                            'assets/animations/compress_animation.json',
+                            fit: BoxFit.contain,
+                          ),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    Text(
-                      AppConstants.appName,
-                      style: Theme.of(context).textTheme.headlineLarge,
+                    const SizedBox(height: 32),
+                    
+                    // App name with slide-up and fade-in effect
+                    FadeTransition(
+                      opacity: _fadeInAnimation,
+                      child: SlideTransition(
+                        position: _slideAnimation,
+                        child: Text(
+                          AppConstants.appName,
+                          style: const TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryColor,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 10),
-                    const Text('Compress your images in seconds'),
+                    const SizedBox(height: 12),
+                    
+                    // Tagline with slide-up and fade-in effect
+                    FadeTransition(
+                      opacity: _fadeInAnimation,
+                      child: SlideTransition(
+                        position: _slideAnimation,
+                        child: const Text(
+                          'Shrink files, not quality',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: AppTheme.textSecondaryColor,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 48),
+                    
+                    // Loading indicator
+                    AnimatedBuilder(
+                      animation: _animationController,
+                      builder: (context, child) {
+                        return Opacity(
+                          opacity: _animationController.value > 0.5 ? 1.0 : 0.0,
+                          child: const SizedBox(
+                            width: 36,
+                            height: 36,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 3,
+                              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   ],
                 ),
               ),
