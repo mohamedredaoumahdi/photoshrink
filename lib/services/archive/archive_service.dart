@@ -143,17 +143,78 @@ class ArchiveService {
     return ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.heic', '.bmp'].contains(ext);
   }
   
-  // Share archive file
+  // Revised share archive function that works with share_plus
   Future<bool> shareArchive(File archiveFile, {String? message}) async {
     LoggerUtil.service(TAG, 'Sharing archive: ${LoggerUtil.truncatePath(archiveFile.path)}');
     
     try {
-      await Share.shareXFiles(
-        [XFile(archiveFile.path)],
-        text: message ?? 'High-quality images shared from PhotoShrink',
-      );
-      LoggerUtil.i(TAG, 'Archive shared successfully');
-      return true;
+      // First ensure the file exists
+      if (!await archiveFile.exists()) {
+        LoggerUtil.e(TAG, 'File does not exist: ${archiveFile.path}');
+        return false;
+      }
+      
+      // Create a temporary file with a .zip extension for better compatibility
+      final tempDir = await getTemporaryDirectory();
+      final shareFileName = 'photoshrink_archive_${DateTime.now().millisecondsSinceEpoch}.zip';
+      final shareFilePath = '${tempDir.path}/$shareFileName';
+      
+      // Copy the original archive to the temporary file
+      try {
+        // Make sure to read and write in chunks to handle large files
+        final input = archiveFile.openRead();
+        final output = File(shareFilePath).openWrite();
+        await input.pipe(output);
+        await output.flush();
+        await output.close();
+        
+        LoggerUtil.d(TAG, 'Created temporary sharing file: $shareFilePath');
+      } catch (e) {
+        LoggerUtil.e(TAG, 'Error creating temporary file for sharing: $e');
+        return false;
+      }
+      
+      // Set file permissions to ensure it's readable
+      try {
+        final tempFile = File(shareFilePath);
+        if (Platform.isIOS || Platform.isMacOS) {
+          await Process.run('chmod', ['644', tempFile.path]);
+        }
+      } catch (e) {
+        // Ignore permission setting errors on some platforms
+        LoggerUtil.w(TAG, 'Could not set file permissions: $e');
+      }
+      
+      // Share the file using XFile for better compatibility
+      final List<XFile> files = [XFile(shareFilePath)];
+      final shareText = message ?? 'High-quality images shared from PhotoShrink';
+      
+      // Use try-catch to handle any share_plus errors
+      try {
+        await Share.shareXFiles(
+          files,
+          text: shareText,
+        );
+        
+        LoggerUtil.i(TAG, 'Archive shared successfully');
+        return true;
+      } catch (e) {
+        LoggerUtil.e(TAG, 'Error in Share.shareXFiles: $e');
+        
+        // Try an alternative approach with just the path
+        try {
+          await Share.share(
+            shareFilePath,
+            subject: shareText,
+          );
+          
+          LoggerUtil.i(TAG, 'Archive shared using fallback method');
+          return true;
+        } catch (fallbackError) {
+          LoggerUtil.e(TAG, 'Fallback sharing also failed: $fallbackError');
+          return false;
+        }
+      }
     } catch (e) {
       LoggerUtil.e(TAG, 'Error sharing archive: $e');
       return false;

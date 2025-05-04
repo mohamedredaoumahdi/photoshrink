@@ -46,13 +46,13 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	
-	<!-- Photo Library Permissions - Already Present -->
+	<!-- Photo Library Permissions -->
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app needs access to your photo library to select and archive images.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>This app needs access to save extracted images to your photo library.</string>
 	
-	<!-- Storage Directory Access - Additional Permissions -->
+	<!-- Storage Directory Access -->
 	<key>NSDocumentsDirectoryUsageDescription</key>
 	<string>PhotoShrink needs access to the documents directory to save your compressed images in your preferred location.</string>
 	<key>NSDownloadsDirectoryUsageDescription</key>
@@ -68,7 +68,7 @@
 			<string>Owner</string>
 			<key>LSItemContentTypes</key>
 			<array>
-				<string>com.yourcompany.photoshrink.archive</string>
+				<string>com.photoshrink.archive</string>
 			</array>
 		</dict>
 	</array>
@@ -85,16 +85,18 @@
 			<key>UTTypeDescription</key>
 			<string>PhotoShrink Archive</string>
 			<key>UTTypeIdentifier</key>
-			<string>com.yourcompany.photoshrink.archive</string>
+			<string>com.photoshrink.archive</string>
 			<key>UTTypeTagSpecification</key>
 			<dict>
 				<key>public.filename-extension</key>
 				<array>
 					<string>phsrk</string>
+					<string>zip</string>
 				</array>
 				<key>public.mime-type</key>
 				<array>
 					<string>application/x-photoshrink-archive</string>
+					<string>application/zip</string>
 				</array>
 			</dict>
 		</dict>
@@ -107,7 +109,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>com.yourcompany.photoshrink</string>
+			<string>com.photoshrink</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>photoshrink</string>
@@ -122,5 +124,24 @@
 	<true/>
 	<key>UIFileSharingEnabled</key>
 	<true/>
+	
+	<!-- Fix for SceneConfiguration error -->
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneConfigurationName</key>
+					<string>Default Configuration</string>
+					<key>UISceneDelegateClassName</key>
+					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
 </dict>
 </plist>

@@ -24,10 +24,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     
     LoggerUtil.i(TAG, 'AuthBloc initialized');
 
+    // Listen for auth state changes from Firebase
     _authStateSubscription = _authService.authStateChanges.listen((user) {
       if (user != null) {
         LoggerUtil.i(TAG, 'Auth state changed: User authenticated (${_maskEmail(user.email)})');
-        emit(Authenticated(user));
+        add(AuthCheckRequested()); // Check auth state to properly update UI
       } else {
         LoggerUtil.i(TAG, 'Auth state changed: User unauthenticated');
         emit(Unauthenticated());
@@ -58,8 +59,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       await _authService.signInWithEmail(event.email, event.password);
+      // Don't emit Authenticated here - let the authStateChanges listener handle it
       LoggerUtil.i(TAG, 'Sign in with email successful for ${_maskEmail(event.email)}');
-      // The authenticated state will be emitted by the stream listener
     } catch (e) {
       final errorMessage = _getErrorMessage(e);
       LoggerUtil.e(TAG, 'Sign in with email failed: $errorMessage');
@@ -75,8 +76,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       await _authService.signUpWithEmail(event.email, event.password);
+      // Don't emit Authenticated here - let the authStateChanges listener handle it
       LoggerUtil.i(TAG, 'Sign up with email successful for ${_maskEmail(event.email)}');
-      // The authenticated state will be emitted by the stream listener
     } catch (e) {
       final errorMessage = _getErrorMessage(e);
       LoggerUtil.e(TAG, 'Sign up with email failed: $errorMessage');
@@ -91,9 +92,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     LoggerUtil.d(TAG, 'Sign in with Google requested');
     emit(AuthLoading());
     try {
+      // Comment or uncomment this based on whether you have Google Sign-In implemented
       //await _authService.signInWithGoogle();
       LoggerUtil.i(TAG, 'Google sign-in is not implemented yet');
-      // The authenticated state will be emitted by the stream listener
+      emit(AuthError('Google sign-in is not implemented yet'));
     } catch (e) {
       final errorMessage = _getErrorMessage(e);
       LoggerUtil.e(TAG, 'Sign in with Google failed: $errorMessage');

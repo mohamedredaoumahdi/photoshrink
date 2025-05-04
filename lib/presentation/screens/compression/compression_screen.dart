@@ -92,109 +92,113 @@ class _CompressionScreenState extends State<CompressionScreen> {
     final sizeBefore = ImageUtils.formatFileSize(state.originalTotalSize);
     final sizeAfter = ImageUtils.formatFileSize(state.compressedTotalSize);
     
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          // Success Card
-          Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  const Icon(
-                    Icons.check_circle,
-                    color: Colors.green,
-                    size: 48,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Archive Created Successfully!',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${widget.imagePaths.length} images bundled with original quality',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 16),
-                  const Divider(),
-                  const SizedBox(height: 16),
-                  
-                  // Size comparison
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildInfoColumn(
-                        'Original Size',
-                        sizeBefore,
-                        Icons.photo_library,
-                      ),
-                      const Icon(Icons.arrow_forward),
-                      _buildInfoColumn(
-                        'Archive Size',
-                        sizeAfter,
-                        Icons.inventory_2,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Reduction info
-                  Text(
-                    'Reduced file size by ${state.totalReduction.toStringAsFixed(1)}% without quality loss!',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
+    // Wrap everything in a SingleChildScrollView to prevent overflow
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Success Card
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    const Icon(
+                      Icons.check_circle,
                       color: Colors.green,
+                      size: 48,
                     ),
-                  ),
-                  
-                  const SizedBox(height: 24),
-                  const Text(
-                    'The archive file contains all your images in their original quality. Recipients must use PhotoShrink to extract them.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Archive Created Successfully!',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${widget.imagePaths.length} images bundled with original quality',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 16),
+                    const Divider(),
+                    const SizedBox(height: 16),
+                    
+                    // Size comparison
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildInfoColumn(
+                          'Original Size',
+                          sizeBefore,
+                          Icons.photo_library,
+                        ),
+                        const Icon(Icons.arrow_forward),
+                        _buildInfoColumn(
+                          'Archive Size',
+                          sizeAfter,
+                          Icons.inventory_2,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    // Reduction info
+                    Text(
+                      'Reduced file size by ${state.totalReduction.toStringAsFixed(1)}% without quality loss!',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 24),
+                    const Text(
+                      'The archive file contains all your images in their original quality. Recipients must use PhotoShrink to extract them.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          
-          const SizedBox(height: 24),
-          
-          // Action buttons
-          ElevatedButton.icon(
-            onPressed: () {
-              _shareArchive(result.compressedPath);
-            },
-            icon: const Icon(Icons.share),
-            label: const Text('Share Archive'),
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size.fromHeight(50),
+            
+            const SizedBox(height: 24),
+            
+            // Action buttons
+            ElevatedButton.icon(
+              onPressed: () {
+                _shareArchive(result.compressedPath);
+              },
+              icon: const Icon(Icons.share),
+              label: const Text('Share Archive'),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size.fromHeight(50),
+              ),
             ),
-          ),
-          
-          const SizedBox(height: 16),
-          
-          OutlinedButton.icon(
-            onPressed: () {
-              Navigator.of(context).pop(true);
-            },
-            icon: const Icon(Icons.check),
-            label: const Text('Done'),
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size.fromHeight(50),
+            
+            const SizedBox(height: 16),
+            
+            OutlinedButton.icon(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              icon: const Icon(Icons.check),
+              label: const Text('Done'),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(50),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -233,12 +237,10 @@ class _CompressionScreenState extends State<CompressionScreen> {
         message: 'This file contains high-quality images shared from PhotoShrink. Open with PhotoShrink to extract them.',
       );
       
-      if (!success) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to share the archive. Please try again.')),
-          );
-        }
+      if (!success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to share the archive. Please try again.')),
+        );
       }
     } catch (e) {
       if (mounted) {
