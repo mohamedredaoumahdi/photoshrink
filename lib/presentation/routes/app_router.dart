@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:photoshrink/presentation/screens/auth/auth_screen.dart'; // Add this import
-import 'package:photoshrink/presentation/screens/compression/compression_screen.dart';
 import 'package:photoshrink/core/constants/route_constants.dart';
+import 'package:photoshrink/presentation/screens/auth/auth_screen.dart';
+import 'package:photoshrink/presentation/screens/compression/compression_screen.dart';
+import 'package:photoshrink/presentation/screens/extract/extract_screen.dart';
 import 'package:photoshrink/presentation/screens/home/home_screen.dart';
 import 'package:photoshrink/presentation/screens/onboarding/onboarding_screen.dart';
 import 'package:photoshrink/presentation/screens/preview/preview_screen.dart';
@@ -17,7 +18,7 @@ class AppRouter {
       case RouteConstants.onboarding:
         return MaterialPageRoute(builder: (_) => const OnboardingScreen());
       case RouteConstants.auth:
-        return MaterialPageRoute(builder: (_) => const AuthScreen());  // Add this case
+        return MaterialPageRoute(builder: (_) => const AuthScreen());
       case RouteConstants.home:
         return MaterialPageRoute(builder: (_) => const HomeScreen());
       case RouteConstants.compression:
@@ -25,7 +26,7 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => CompressionScreen(
             imagePaths: args?['imagePaths'] as List<String>? ?? [],
-            quality: args?['quality'] as int? ?? 60,
+            quality: args?['quality'] as int? ?? 100,
           ),
         );
       case RouteConstants.preview:
@@ -42,6 +43,13 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const SettingsScreen());
       case RouteConstants.subscription:
         return MaterialPageRoute(builder: (_) => const SubscriptionScreen());
+      case RouteConstants.extract:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => ExtractScreen(
+            archivePath: args?['archivePath'] as String? ?? '',
+          ),
+        );
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(

@@ -9,7 +9,6 @@ import 'package:photoshrink/core/constants/app_constants.dart';
 import 'package:photoshrink/core/theme/app_theme.dart';
 import 'package:photoshrink/core/utils/image_utils.dart';
 import 'package:photoshrink/di/dependency_injection.dart';
-import 'package:photoshrink/presentation/common_widgets/ad_banner.dart';
 import 'package:photoshrink/services/analytics/analytics_service.dart';
 
 class PreviewScreen extends StatefulWidget {

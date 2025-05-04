@@ -1,14 +1,13 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-//import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:photoshrink/core/constants/route_constants.dart';
 import 'package:photoshrink/core/utils/image_utils.dart';
 import 'package:photoshrink/di/dependency_injection.dart';
 import 'package:photoshrink/presentation/bloc/compression/compression_bloc.dart';
 import 'package:photoshrink/presentation/bloc/compression/compression_event.dart';
 import 'package:photoshrink/presentation/bloc/compression/compression_state.dart';
 import 'package:photoshrink/presentation/screens/compression/widgets/compression_progress.dart';
-import 'package:photoshrink/presentation/screens/compression/widgets/compression_result_card.dart';
+import 'package:photoshrink/services/archive/archive_service.dart';
 
 class CompressionScreen extends StatefulWidget {
   final List<String> imagePaths;
@@ -26,47 +25,16 @@ class CompressionScreen extends StatefulWidget {
 
 class _CompressionScreenState extends State<CompressionScreen> {
   final CompressionBloc _compressionBloc = getIt<CompressionBloc>();
-  //BannerAd? _bannerAd;
-  final bool _isAdLoaded = false;
+  final ArchiveService _archiveService = ArchiveService();
 
   @override
   void initState() {
     super.initState();
-    _loadAd();
     
-    // Start compression process
+    // Start archiving process
     _compressionBloc.add(StartCompressionProcess(
       imagePaths: widget.imagePaths,
-      quality: widget.quality,
     ));
-  }
-
-  void _loadAd() {
-    // if (AppConstants.enableAds) {
-    //   _bannerAd = BannerAd(
-    //     adUnitId: AppConstants.bannerAdUnitId,
-    //     size: AdSize.banner,
-    //     request: const AdRequest(),
-    //     listener: BannerAdListener(
-    //       onAdLoaded: (ad) {
-    //         setState(() {
-    //           _isAdLoaded = true;
-    //         });
-    //       },
-    //       onAdFailedToLoad: (ad, error) {
-    //         ad.dispose();
-    //       },
-    //     ),
-    //   );
-
-    //   _bannerAd?.load();
-    // }
-  }
-
-  @override
-  void dispose() {
-    //_bannerAd?.dispose();
-    super.dispose();
   }
 
   @override
@@ -80,22 +48,12 @@ class _CompressionScreenState extends State<CompressionScreen> {
               SnackBar(content: Text(state.message)),
             );
             Navigator.of(context).pop();
-          } else if (state is NavigateToPreviewScreen) {
-            Navigator.of(context).pushNamed(
-              RouteConstants.preview,
-              arguments: {
-                'originalPath': state.result.originalPath,
-                'compressedPath': state.result.compressedPath,
-                'originalSize': state.result.originalSize,
-                'compressedSize': state.result.compressedSize,
-              },
-            );
           }
         },
         builder: (context, state) {
           return Scaffold(
             appBar: AppBar(
-              title: const Text('Compressing Images'),
+              title: const Text('Creating Archive'),
               leading: state is CompressionInProgress
                   ? IconButton(
                       icon: const Icon(Icons.close),
@@ -107,7 +65,6 @@ class _CompressionScreenState extends State<CompressionScreen> {
                   : const BackButton(),
             ),
             body: _buildBody(context, state),
-            //bottomNavigationBar: _buildAdBanner(),
           );
         },
       ),
@@ -122,7 +79,7 @@ class _CompressionScreenState extends State<CompressionScreen> {
         totalImages: state.totalImages,
       );
     } else if (state is CompressionSuccess) {
-      return _buildCompressionResults(context, state);
+      return _buildArchivingResults(context, state);
     } else {
       return const Center(
         child: CircularProgressIndicator(),
@@ -130,13 +87,17 @@ class _CompressionScreenState extends State<CompressionScreen> {
     }
   }
 
-  Widget _buildCompressionResults(BuildContext context, CompressionSuccess state) {
-    return Column(
-      children: [
-        // Summary card
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Card(
+  Widget _buildArchivingResults(BuildContext context, CompressionSuccess state) {
+    final result = state.results[0]; // We only have one result - the archive
+    final sizeBefore = ImageUtils.formatFileSize(state.originalTotalSize);
+    final sizeAfter = ImageUtils.formatFileSize(state.compressedTotalSize);
+    
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          // Success Card
+          Card(
             elevation: 4,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -151,108 +112,140 @@ class _CompressionScreenState extends State<CompressionScreen> {
                     size: 48,
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    'Compression Complete!',
-                    style: Theme.of(context).textTheme.titleLarge,
+                  const Text(
+                    'Archive Created Successfully!',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${state.results.length} images compressed',
-                    style: Theme.of(context).textTheme.bodyLarge,
+                    '${widget.imagePaths.length} images bundled with original quality',
+                    style: const TextStyle(fontSize: 16),
                   ),
                   const SizedBox(height: 16),
+                  const Divider(),
+                  const SizedBox(height: 16),
+                  
+                  // Size comparison
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildStatColumn(
+                      _buildInfoColumn(
                         'Original Size',
-                        ImageUtils.formatFileSize(state.originalTotalSize),
+                        sizeBefore,
+                        Icons.photo_library,
                       ),
-                      _buildStatColumn(
-                        'Compressed Size',
-                        ImageUtils.formatFileSize(state.compressedTotalSize),
-                      ),
-                      _buildStatColumn(
-                        'Reduction',
-                        '${state.totalReduction.toStringAsFixed(1)}%',
+                      const Icon(Icons.arrow_forward),
+                      _buildInfoColumn(
+                        'Archive Size',
+                        sizeAfter,
+                        Icons.inventory_2,
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Reduction info
+                  Text(
+                    'Reduced file size by ${state.totalReduction.toStringAsFixed(1)}% without quality loss!',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green,
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 24),
+                  const Text(
+                    'The archive file contains all your images in their original quality. Recipients must use PhotoShrink to extract them.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                 ],
               ),
             ),
           ),
-        ),
-        
-        // Results list
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16.0),
-            itemCount: state.results.length,
-            itemBuilder: (context, index) {
-              final result = state.results[index];
-              return CompressionResultCard(
-                result: result,
-                onTap: () {
-                  Navigator.of(context).pushNamed(
-                    RouteConstants.preview,
-                    arguments: {
-                      'originalPath': result.originalPath,
-                      'compressedPath': result.compressedPath,
-                      'originalSize': result.originalSize,
-                      'compressedSize': result.compressedSize,
-                    },
-                  );
-                },
-              );
-            },
-          ),
-        ),
-        
-        // Done button
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: ElevatedButton(
+          
+          const SizedBox(height: 24),
+          
+          // Action buttons
+          ElevatedButton.icon(
             onPressed: () {
-              Navigator.of(context).pop(true);
+              _shareArchive(result.compressedPath);
             },
+            icon: const Icon(Icons.share),
+            label: const Text('Share Archive'),
             style: ElevatedButton.styleFrom(
               minimumSize: const Size.fromHeight(50),
             ),
-            child: const Text('Done'),
           ),
-        ),
-      ],
+          
+          const SizedBox(height: 16),
+          
+          OutlinedButton.icon(
+            onPressed: () {
+              Navigator.of(context).pop(true);
+            },
+            icon: const Icon(Icons.check),
+            label: const Text('Done'),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(50),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildStatColumn(String label, String value) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            color: Colors.grey,
+  Widget _buildInfoColumn(String label, String value, IconData icon) {
+    return Expanded(
+      child: Column(
+        children: [
+          Icon(icon, size: 24),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.grey,
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  // Widget _buildAdBanner() {
-  //   if (AppConstants.enableAds && _isAdLoaded && _bannerAd != null) {
-  //     return AdBanner(ad: _bannerAd!);
-  //   } else {
-  //     return const SizedBox.shrink();
-  //   }
-  // }
+  Future<void> _shareArchive(String archivePath) async {
+    try {
+      final file = File(archivePath);
+      final bool success = await _archiveService.shareArchive(
+        file,
+        message: 'This file contains high-quality images shared from PhotoShrink. Open with PhotoShrink to extract them.',
+      );
+      
+      if (!success) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to share the archive. Please try again.')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    }
+  }
 }

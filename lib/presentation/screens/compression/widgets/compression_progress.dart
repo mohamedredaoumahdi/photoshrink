@@ -19,9 +19,9 @@ class CompressionProgress extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
-        child: SingleChildScrollView( // Add ScrollView to handle overflow
+        child: SingleChildScrollView(
           child: Column(
-            mainAxisSize: MainAxisSize.min, // Set to min to prevent expansion
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SizedBox(
@@ -34,12 +34,12 @@ class CompressionProgress extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               Text(
-                'Compressing Images...',
+                'Creating Archive...',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 8),
               Text(
-                '$processedImages of $totalImages completed',
+                '$processedImages of $totalImages images added',
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
               const SizedBox(height: 24),
@@ -61,7 +61,7 @@ class CompressionProgress extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               const Text(
-                'Please do not close the app during compression.',
+                'Your images are being bundled with original quality preserved. Please wait...',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.grey),
               ),

@@ -17,7 +17,7 @@ class UserSettings extends Equatable {
   });
 
   factory UserSettings.defaultSettings() {
-    return const UserSettings(
+    return UserSettings(
       defaultCompressionQuality: AppConstants.mediumQuality,
       enableCloudStorage: false,
       enableNotifications: true,

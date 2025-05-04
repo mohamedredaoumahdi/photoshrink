@@ -60,6 +60,44 @@ class CompressionError extends CompressionState {
   List<Object?> get props => [message];
 }
 
+// Extraction states
+class ExtractionInProgress extends CompressionState {
+  final int totalImages;
+  final int processedImages;
+  final double progress;
+
+  const ExtractionInProgress({
+    required this.totalImages,
+    required this.processedImages,
+    required this.progress,
+  });
+
+  @override
+  List<Object?> get props => [totalImages, processedImages, progress];
+}
+
+class ExtractionSuccess extends CompressionState {
+  final List<String> extractedPaths;
+  final int count;
+
+  const ExtractionSuccess({
+    required this.extractedPaths,
+    required this.count,
+  });
+
+  @override
+  List<Object?> get props => [extractedPaths, count];
+}
+
+class ExtractionError extends CompressionState {
+  final String message;
+
+  const ExtractionError(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
 class NavigateToPreviewScreen extends CompressionState {
   final CompressionResult result;
 

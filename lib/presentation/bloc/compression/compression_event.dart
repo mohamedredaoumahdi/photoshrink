@@ -13,7 +13,7 @@ class StartCompressionProcess extends CompressionEvent {
 
   const StartCompressionProcess({
     required this.imagePaths,
-    required this.quality,
+    this.quality = 100, // We use 100 for lossless archiving
   });
 
   @override
@@ -21,3 +21,16 @@ class StartCompressionProcess extends CompressionEvent {
 }
 
 class CancelCompression extends CompressionEvent {}
+
+class ExtractArchiveEvent extends CompressionEvent {
+  final String archivePath;
+  final bool saveToGallery;
+  
+  const ExtractArchiveEvent({
+    required this.archivePath,
+    this.saveToGallery = true,
+  });
+  
+  @override
+  List<Object?> get props => [archivePath, saveToGallery];
+}

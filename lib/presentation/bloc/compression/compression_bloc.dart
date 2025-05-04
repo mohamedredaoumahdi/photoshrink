@@ -1,35 +1,31 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:archive/archive.dart';
-import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
 import 'package:photoshrink/core/constants/app_constants.dart';
-import 'package:photoshrink/core/utils/image_utils.dart';
 import 'package:photoshrink/data/models/compression_history.dart';
 import 'package:photoshrink/data/models/compression_result.dart';
 import 'package:photoshrink/presentation/bloc/compression/compression_event.dart';
 import 'package:photoshrink/presentation/bloc/compression/compression_state.dart';
 import 'package:photoshrink/services/analytics/analytics_service.dart';
+import 'package:photoshrink/services/archive/archive_service.dart';
 import 'package:photoshrink/services/compression/compression_service.dart';
 import 'package:photoshrink/services/storage/storage_service.dart';
 
 class CompressionBloc extends Bloc<CompressionEvent, CompressionState> {
-  final CompressionService _compressionService;
+  final ArchiveService _archiveService = ArchiveService();
   final StorageService _storageService;
   final AnalyticsService _analyticsService;
   bool _isCompressing = false;
 
   CompressionBloc({
-    required CompressionService compressionService,
     required StorageService storageService,
-    required AnalyticsService analyticsService,
-  })  : _compressionService = compressionService,
-        _storageService = storageService,
+    required AnalyticsService analyticsService, required CompressionService compressionService,
+  })  : _storageService = storageService,
         _analyticsService = analyticsService,
         super(CompressionInitial()) {
     on<StartCompressionProcess>(_onStartCompressionProcess);
     on<CancelCompression>(_onCancelCompression);
+    on<ExtractArchiveEvent>(_onExtractArchive);
   }
 
   Future<void> _onStartCompressionProcess(
@@ -40,7 +36,6 @@ class CompressionBloc extends Bloc<CompressionEvent, CompressionState> {
     _isCompressing = true;
 
     final List<String> imagePaths = event.imagePaths;
-    final int quality = event.quality;
     final int totalImages = imagePaths.length;
 
     if (totalImages == 0) {
@@ -58,7 +53,19 @@ class CompressionBloc extends Bloc<CompressionEvent, CompressionState> {
 
     try {
       // Create an archive file from the images
-      final File? archiveFile = await _createImageArchive(imagePaths, emit);
+      final File? archiveFile = await _archiveService.createImageArchive(
+        imagePaths, 
+        onProgress: (progress, processedImages, totalImages) {
+          if (!_isCompressing) return; // Stop if compression was cancelled
+          
+          emit(CompressionInProgress(
+            totalImages: totalImages,
+            processedImages: processedImages,
+            progress: progress,
+            results: const [],
+          ));
+        },
+      );
       
       if (archiveFile == null) {
         emit(const CompressionError('Failed to create archive file'));
@@ -75,7 +82,7 @@ class CompressionBloc extends Bloc<CompressionEvent, CompressionState> {
       
       final int archiveSize = await archiveFile.length();
       final double totalReduction = originalTotalSize > 0
-          ? ImageUtils.calculateSizeReduction(originalTotalSize, archiveSize)
+          ? ((originalTotalSize - archiveSize) / originalTotalSize) * 100
           : 0.0;
           
       // Create a single result for the archive
@@ -95,7 +102,7 @@ class CompressionBloc extends Bloc<CompressionEvent, CompressionState> {
       // Log analytics
       await _analyticsService.logCompression(
         imageCount: imagePaths.length,
-        quality: quality,
+        quality: 100, // We're using lossless, so quality is 100%
         sizeReduction: totalReduction,
       );
 
@@ -106,73 +113,9 @@ class CompressionBloc extends Bloc<CompressionEvent, CompressionState> {
         compressedTotalSize: archiveSize,
       ));
     } catch (e) {
-      emit(CompressionError('Failed to compress images: ${e.toString()}'));
+      emit(CompressionError('Failed to create archive: ${e.toString()}'));
     } finally {
       _isCompressing = false;
-    }
-  }
-  
-  Future<File?> _createImageArchive(
-    List<String> imagePaths, 
-    Emitter<CompressionState> emit
-  ) async {
-    try {
-      // Create archive
-      final archive = Archive();
-      int totalProcessed = 0;
-      
-      // Process each image
-      for (final imagePath in imagePaths) {
-        if (state is CompressionCancelled) {
-          return null;
-        }
-        
-        try {
-          final File imageFile = File(imagePath);
-          final bytes = await imageFile.readAsBytes();
-          
-          // Get original filename
-          final fileName = path.basename(imagePath);
-          
-          // Add file to archive
-          final archiveFile = ArchiveFile(
-            fileName,
-            bytes.length,
-            bytes,
-          );
-          archive.addFile(archiveFile);
-          
-          // Update progress
-          totalProcessed++;
-          final double progress = totalProcessed / imagePaths.length;
-          emit(CompressionInProgress(
-            totalImages: imagePaths.length,
-            processedImages: totalProcessed,
-            progress: progress,
-            results: const [],
-          ));
-        } catch (e) {
-          print('Error adding file to archive: $e');
-          // Continue with next file
-        }
-      }
-      
-      // Create output directory
-      final outputDir = await getApplicationDocumentsDirectory();
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final outputPath = path.join(outputDir.path, 'photoshrink_$timestamp.zip');
-      
-      // Encode and save the zip file
-      final zipData = ZipEncoder().encode(archive);
-      if (zipData == null) return null;
-      
-      final zipFile = File(outputPath);
-      await zipFile.writeAsBytes(zipData);
-      
-      return zipFile;
-    } catch (e) {
-      print('Error creating archive: $e');
-      return null;
     }
   }
 
@@ -184,32 +127,39 @@ class CompressionBloc extends Bloc<CompressionEvent, CompressionState> {
     _isCompressing = false;
   }
   
-  Future<List<String>> extractArchive(String archivePath) async {
+  Future<void> _onExtractArchive(
+    ExtractArchiveEvent event,
+    Emitter<CompressionState> emit,
+  ) async {
+    emit(ExtractionInProgress(
+      totalImages: 0, // We don't know yet how many images are in the archive
+      processedImages: 0,
+      progress: 0.0,
+    ));
+    
     try {
-      final File archiveFile = File(archivePath);
-      final bytes = await archiveFile.readAsBytes();
+      final extractedPaths = await _archiveService.extractArchive(
+        event.archivePath,
+        saveToGallery: event.saveToGallery,
+        onProgress: (progress, processedImages, totalImages) {
+          emit(ExtractionInProgress(
+            totalImages: totalImages,
+            processedImages: processedImages,
+            progress: progress,
+          ));
+        },
+      );
       
-      // Decode the zip
-      final archive = ZipDecoder().decodeBytes(bytes);
-      final extractedPaths = <String>[];
-      
-      // Get output directory
-      final outputDir = await getTemporaryDirectory();
-      
-      // Extract each file
-      for (final file in archive) {
-        if (file.isFile) {
-          final outputPath = path.join(outputDir.path, file.name);
-          final outputFile = File(outputPath);
-          await outputFile.writeAsBytes(file.content as List<int>);
-          extractedPaths.add(outputPath);
-        }
+      if (extractedPaths.isEmpty) {
+        emit(const ExtractionError('No images found in the archive'));
+      } else {
+        emit(ExtractionSuccess(
+          extractedPaths: extractedPaths,
+          count: extractedPaths.length,
+        ));
       }
-      
-      return extractedPaths;
     } catch (e) {
-      print('Error extracting archive: $e');
-      return [];
+      emit(ExtractionError('Failed to extract archive: ${e.toString()}'));
     }
   }
 }

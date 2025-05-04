@@ -46,8 +46,73 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app needs access to your photo library to select and compress images.</string>
+	<string>This app needs access to your photo library to select and archive images.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>This app needs access to save compressed images to your photo library.</string>
+	<string>This app needs access to save extracted images to your photo library.</string>
+	
+	<!-- Document Types -->
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>PhotoShrink Archive</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.yourcompany.photoshrink.archive</string>
+			</array>
+		</dict>
+	</array>
+	
+	<!-- UTI Declaration -->
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+				<string>public.archive</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>PhotoShrink Archive</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.yourcompany.photoshrink.archive</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>phsrk</string>
+				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>application/x-photoshrink-archive</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
+	
+	<!-- URL types (for sharing) -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.yourcompany.photoshrink</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>photoshrink</string>
+			</array>
+		</dict>
+	</array>
+	
+	<!-- Sharing permissions -->
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
+	<key>UISupportsDocumentBrowser</key>
+	<true/>
+	<key>UIFileSharingEnabled</key>
+	<true/>
 </dict>
 </plist>

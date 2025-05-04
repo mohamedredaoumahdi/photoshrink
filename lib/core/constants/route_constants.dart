@@ -7,4 +7,5 @@ class RouteConstants {
   static const String settings = '/settings';
   static const String subscription = '/subscription';
   static const String auth = '/auth';
+  static const String extract = '/extract';
 }
